@@ -1,0 +1,95 @@
+.layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 20px;
+  min-width: 920px;
+}
+.treeCard,
+.detailCard {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  padding: 16px;
+}
+.treeTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-strong);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+.node {
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.node:hover {
+  background: var(--color-info-bg);
+}
+.node.active {
+  background: var(--color-info-bg);
+  color: var(--color-primary-dark);
+  font-weight: 600;
+}
+.chevron {
+  font-size: 10px;
+  width: 12px;
+  display: inline-block;
+}
+.indent {
+  padding-left: 16px;
+}
+.count {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--color-text-subtle);
+  background: var(--color-bg);
+  padding: 1px 7px;
+  border-radius: 8px;
+}
+.detailTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-strong);
+  margin-bottom: 4px;
+}
+.detailSub {
+  font-size: 12px;
+  color: var(--color-text-subtle);
+  margin-bottom: 16px;
+}
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.stat {
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  text-align: center;
+}
+.statVal {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+.statLbl {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+.emptyDetail {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--color-text-subtle);
+  font-size: 13px;
+}

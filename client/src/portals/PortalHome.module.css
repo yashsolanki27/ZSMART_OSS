@@ -1,0 +1,55 @@
+.title {
+  color: var(--color-text-strong);
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.blurb {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  margin-bottom: 28px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  text-align: center;
+  transition: var(--transition);
+  font: inherit;
+  color: inherit;
+  min-height: 160px;
+}
+.card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-5px);
+}
+.icon {
+  font-size: 42px;
+  margin-bottom: 14px;
+}
+.cardTitle {
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.cardDesc {
+  color: var(--color-text-subtle);
+  font-size: 12px;
+}
+.kpisRow {
+  margin-bottom: 24px;
+}

@@ -1,0 +1,30 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.heading h1 {
+  color: var(--color-text-strong);
+  font-size: 22px;
+  font-weight: 600;
+}
+.breadcrumb {
+  margin-bottom: 4px;
+  color: var(--color-link);
+  font-size: 12px;
+}
+.back {
+  padding: 7px 14px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: #24446f;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.back:hover {
+  background: var(--color-info-bg);
+}
