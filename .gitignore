@@ -1,0 +1,8 @@
+extracted_imgs/
+portal-app-extracted/
+*.log
+*.tmp
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
