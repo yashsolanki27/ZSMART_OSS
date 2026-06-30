@@ -1,0 +1,35 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: zsmart
+      POSTGRES_PASSWORD: zsmart123
+      POSTGRES_DB: zsmart_oss
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zsmart -d zsmart_oss"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build: ./server
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://zsmart:zsmart123@db:5432/zsmart_oss?schema=public
+      JWT_SECRET: change_this_in_production_$(date +%s)
+      JWT_EXPIRES_IN: 8h
+      NODE_ENV: production
+      CLIENT_ORIGIN: http://localhost:5173
+    ports:
+      - "4000:4000"
+    command: sh -c "npx prisma migrate deploy && node prisma/seed.js && node src/index.js"
+
+volumes:
+  pgdata:

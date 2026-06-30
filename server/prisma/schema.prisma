@@ -1,0 +1,442 @@
+// ============================================================
+// ZSMART OSS — Prisma Schema (PostgreSQL)
+// Phase 2.2: Schema design. 22 models covering all 33 frontend modules.
+// Field names mirror client/src/data/mock/index.js (the frontend contract).
+// Enums mirror client StatusBadge value sets.
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// ENUMS — closed value sets used across models + StatusBadge
+// ============================================================
+
+enum Role {
+  ADMINISTRATOR
+  OPERATOR
+  ENGINEER
+  VIEWER
+}
+
+enum UserStatus {
+  ACTIVE
+  LOCKED
+  DISABLED
+}
+
+enum GenericStatus {
+  NORMAL
+  EXCEPTION
+  FINISHED
+  IN_PROGRESS
+  PENDING
+  ACTIVE
+  INACTIVE
+  COMPLETED
+}
+
+enum Priority {
+  STANDARD
+  HIGH
+  CRITICAL
+  LOW
+}
+
+enum Severity {
+  CRITICAL
+  MAJOR
+  MINOR
+  WARNING
+}
+
+enum AlarmStatus {
+  ACTIVE
+  CLEARED
+  SUPPRESSED
+}
+
+enum SlaStatus {
+  COMPLIANT
+  AT_RISK
+  BREACHED
+  ON_TRACK
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum WorkgroupType {
+  ACCESS
+  CORE
+  FIELD
+  NOC
+}
+
+enum Region {
+  NORTH
+  SOUTH
+  EAST
+  WEST
+}
+
+// ============================================================
+// MODELS
+// ============================================================
+
+// ---------- ITC Admin: Users / Roles / Workgroups ----------
+
+model User {
+  id        Int        @id @default(autoincrement())
+  username  String     @unique
+  fullName  String
+  email     String     @unique
+  password  String
+  role      Role       @default(VIEWER)
+  workgroup String?
+  status    UserStatus @default(ACTIVE)
+  lastLogin String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  auditLogs AuditLog[]
+
+  @@map("users")
+}
+
+model RoleModel {
+  id          Int      @id @default(autoincrement())
+  roleName    String   @unique
+  description String?
+  permissions String?
+  userCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@map("role_models")
+}
+
+model Workgroup {
+  id        Int           @id @default(autoincrement())
+  name      String        @unique
+  type      WorkgroupType @default(ACCESS)
+  members   Int           @default(0)
+  lead      String?
+  region    Region        @default(NORTH)
+  status    GenericStatus @default(ACTIVE)
+  createdAt DateTime      @default(now())
+
+  @@map("workgroups")
+}
+
+// ---------- IOM: Orders / Exceptions / Tasks / Services ----------
+
+model Order {
+  id                  Int           @id @default(autoincrement())
+  customerOrderNumber String        @unique
+  phoneNumber         String
+  cfsSpecifications   String
+  cfsEvent            String
+  productEvent        String?
+  area                String
+  orderStatus         GenericStatus @default(NORMAL)
+  orderStatusDate     String
+  completeDate        String?
+  priority            Priority      @default(STANDARD)
+  warningDate         String?
+  timeoutDate         String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  @@map("orders")
+}
+
+model ExceptionRecord {
+  id            Int           @id @default(autoincrement())
+  orderNumber   String
+  phoneNumber   String?
+  exceptionType String
+  severity      Severity      @default(MINOR)
+  area          String?
+  raisedDate    String
+  slaBreach     Boolean       @default(false)
+  assignedTo    String?
+  status        GenericStatus @default(PENDING)
+  resolution    String?
+  createdAt     DateTime      @default(now())
+
+  @@map("exceptions")
+}
+
+model Task {
+  id          Int           @id @default(autoincrement())
+  taskId      String        @unique
+  orderNumber String?
+  taskType    String
+  workgroup   String?
+  assignedTo  String?
+  status      GenericStatus @default(PENDING)
+  priority    Priority      @default(STANDARD)
+  dueDate     String?
+  area        String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@map("tasks")
+}
+
+model ServiceInstance {
+  id            Int           @id @default(autoincrement())
+  serviceId     String        @unique
+  customerName  String
+  serviceType   String
+  phoneNumber   String?
+  status        GenericStatus @default(ACTIVE)
+  activatedDate String?
+  area          String?
+  createdAt     DateTime      @default(now())
+
+  @@map("service_instances")
+}
+
+// ---------- ISAP: Assurance / SLA / Tickets ----------
+
+model Assurance {
+  id          Int           @id @default(autoincrement())
+  serviceId   String
+  customer    String
+  kpi         String
+  score       String
+  status      GenericStatus @default(NORMAL)
+  lastChecked String?
+  createdAt   DateTime      @default(now())
+
+  @@map("assurances")
+}
+
+model Sla {
+  id         Int       @id @default(autoincrement())
+  slaName    String
+  target     String
+  achieved   String
+  compliance String
+  status     SlaStatus @default(COMPLIANT)
+  period     String?
+  createdAt  DateTime  @default(now())
+
+  @@map("slas")
+}
+
+model Ticket {
+  id         Int          @id @default(autoincrement())
+  ticketId   String       @unique
+  customer   String
+  category   String
+  severity   Severity     @default(MINOR)
+  status     TicketStatus @default(OPEN)
+  openedDate String?
+  assignedTo String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@map("tickets")
+}
+
+// ---------- IM: MAC / Migration ----------
+
+model MacRecord {
+  id         Int           @id @default(autoincrement())
+  deviceId   String
+  deviceName String
+  currentMac String
+  newMac     String
+  area       String?
+  status     GenericStatus @default(PENDING)
+  modifiedBy String?
+  createdAt  DateTime      @default(now())
+
+  @@map("mac_records")
+}
+
+model Migration {
+  id          Int           @id @default(autoincrement())
+  migrationId String        @unique
+  source      String
+  target      String
+  records     Int           @default(0)
+  progress    Int           @default(0)
+  status      GenericStatus @default(PENDING)
+  scheduled   String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("migrations")
+}
+
+// ---------- Resource Assign ----------
+
+model ResourceOrder {
+  id           Int           @id @default(autoincrement())
+  orderId      String        @unique
+  resourceType String
+  quantity     Int           @default(1)
+  requestedBy  String?
+  status       GenericStatus @default(PENDING)
+  createdDate  String?
+  area         String?
+  createdAt    DateTime      @default(now())
+
+  @@map("resource_orders")
+}
+
+model ResourceTask {
+  id           Int           @id @default(autoincrement())
+  taskId       String        @unique
+  orderId      String?
+  resourceType String
+  assignedTo   String?
+  status       GenericStatus @default(PENDING)
+  dueDate      String?
+  createdAt    DateTime      @default(now())
+
+  @@map("resource_tasks")
+}
+
+// ---------- WFM: Tasks / Teams ----------
+
+model WfmTask {
+  id         Int           @id @default(autoincrement())
+  taskId     String        @unique
+  title      String
+  type       String
+  assignedTo String?
+  priority   Priority      @default(STANDARD)
+  status     GenericStatus @default(PENDING)
+  dueDate    String?
+  location   String?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@map("wfm_tasks")
+}
+
+model Team {
+  id          Int           @id @default(autoincrement())
+  teamName    String        @unique
+  type        String
+  members     Int           @default(0)
+  lead        String?
+  region      Region        @default(NORTH)
+  activeTasks Int           @default(0)
+  status      GenericStatus @default(ACTIVE)
+  createdAt   DateTime      @default(now())
+
+  @@map("teams")
+}
+
+// ---------- OFM: BSNL / MPLS / Dockets ----------
+
+model BsnlRequest {
+  id            Int           @id @default(autoincrement())
+  requestId     String        @unique
+  phoneNumber   String?
+  requestType   String
+  circle        String?
+  status        GenericStatus @default(PENDING)
+  requestedDate String?
+  sla           SlaStatus     @default(ON_TRACK)
+  isHistory     Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+
+  @@map("bsnl_requests")
+}
+
+model MplsBatch {
+  id        Int           @id @default(autoincrement())
+  batchId   String        @unique
+  siteCount Int           @default(0)
+  completed Int           @default(0)
+  failed    Int           @default(0)
+  progress  Int           @default(0)
+  status    GenericStatus @default(PENDING)
+  startDate String?
+  createdAt DateTime      @default(now())
+
+  @@map("mpls_batches")
+}
+
+model Docket {
+  id          Int           @id @default(autoincrement())
+  docketId    String        @unique
+  entity      String
+  type        String
+  pendingDays Int           @default(0)
+  priority    Priority      @default(STANDARD)
+  status      GenericStatus @default(PENDING)
+  lastAction  String?
+  createdAt   DateTime      @default(now())
+
+  @@map("dockets")
+}
+
+// ---------- Fault: Alarms / Incidents ----------
+
+model Alarm {
+  id           Int         @id @default(autoincrement())
+  alarmId      String      @unique
+  device       String
+  severity     Severity    @default(MINOR)
+  description  String?
+  area         String?
+  raisedDate   String?
+  acknowledged Boolean     @default(false)
+  status       AlarmStatus @default(ACTIVE)
+  createdAt    DateTime    @default(now())
+
+  @@index([severity])
+  @@index([status])
+  @@map("alarms")
+}
+
+model Incident {
+  id              Int           @id @default(autoincrement())
+  incidentId      String        @unique
+  title           String
+  severity        Severity      @default(MINOR)
+  affectedService String?
+  status          GenericStatus @default(PENDING)
+  openedDate      String?
+  assignedTo      String?
+  sla             SlaStatus     @default(ON_TRACK)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@map("incidents")
+}
+
+// ---------- Analytics: Audit ----------
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  auditId   String   @unique
+  user      String
+  action    String
+  module    String
+  entity    String?
+  timestamp String?
+  ip        String?
+  userId    Int?
+  userRel   User?    @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}

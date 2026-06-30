@@ -29,7 +29,7 @@ export default function LoginPage() {
       .catch(() => setIpAddress("Unavailable"));
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
@@ -37,14 +37,11 @@ export default function LoginPage() {
     if (!username.trim()) return setError("Username is required");
     if (!password.trim()) return setError("Password is required");
 
-    // Mock credentials (Phase 2 → real JWT auth)
-    if (username === "admin" && password === "password") {
+    try {
+      await login(username, password);
       setSuccess("Login successful! Redirecting...");
-      setTimeout(() => {
-        login(username);
-        navigate("/");
-      }, 800);
-    } else {
+      setTimeout(() => navigate("/"), 800);
+    } catch {
       setError("Invalid username or password");
     }
   };

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "autoApprove": {
+      "fileWrite": true,
+      "fileEdit": true,
+      "fileDelete": false,
+      "shell": false
+    }
+  }
+}

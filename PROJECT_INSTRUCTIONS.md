@@ -28,7 +28,7 @@ Build a web-based telecom OSS (Operations Support System) portal covering order 
 | Phase | Status | Details |
 |---|---|---|
 | Phase 1: Frontend | ✅ COMPLETE | 44 files, 9 portals, 33 modules, compiles, runs at localhost:5173 |
-| Phase 2: Backend | ⏳ NOT STARTED | Plan approved, PostgreSQL selected, Prisma ORM planned |
+| Phase 2: Backend | 🔄 IN PROGRESS | 2.1 ✅ scaffold · 2.2 ✅ Prisma schema (22 models, validated). Steps 2.3+ remaining |
 | Phase 3: Database | ⏳ NOT STARTED | — |
 | Phase 4: Integration | ⏳ NOT STARTED | Replace mock → API calls |
 | Phase 5: Production | ⏳ NOT STARTED | Docker, CI/CD, HTTPS |
@@ -73,4 +73,6 @@ cd client && npm install && npm run dev
 - `SKILLS/` — Reusable workflows and solutions (see SKILLS/README.md)
 
 ## Next Step
-**Execute Phase 2, Step 2.1** — Scaffold the `server/` directory with Express.
+**Execute Phase 2, Step 2.3** — Run the Prisma migration against PostgreSQL and
+write `prisma/seed.js` to populate the DB with sample data. Requires a running
+PostgreSQL instance (see `SKILLS/prisma-postgres-setup.md`).

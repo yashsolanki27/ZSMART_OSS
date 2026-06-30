@@ -1,34 +1,46 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { getPortal, getModule } from "../config/portals";
+import { api } from "../api";
+import { moduleApiMap } from "../config/moduleApiMap";
 import PageHeader from "../components/ui/PageHeader";
 import SearchPanel from "../components/ui/SearchPanel";
 import DataTable from "../components/ui/DataTable";
 import styles from "./ModuleListPage.module.css";
 
-/**
- * ModuleListPage — the universal "list" page that powers ~30 module screens
- * (Order Desk, Exception Monitoring, Users, Alarms, etc.). All data comes
- * from config/portals.js → { columns, searchFields, rows, actions }.
- * Includes client-side filtering driven by the SearchPanel.
- */
 export default function ModuleListPage() {
   const { portalId, moduleId } = useParams();
   const portal = getPortal(portalId);
   const mod = getModule(portalId, moduleId);
   const [filters, setFilters] = useState({});
+  const [apiRows, setApiRows] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const apiKey = moduleApiMap[moduleId];
+    if (!apiKey || !api[apiKey]) {
+      setApiRows(null);
+      return;
+    }
+    setLoading(true);
+    api[apiKey].list()
+      .then((res) => setApiRows(res.items))
+      .catch(() => setApiRows(null))
+      .finally(() => setLoading(false));
+  }, [moduleId]);
+
+  const rows = apiRows || mod?.rows || [];
 
   const filteredRows = useMemo(() => {
-    if (!mod?.rows) return [];
     const active = Object.entries(filters).filter(([, v]) => v && String(v).trim());
-    if (active.length === 0) return mod.rows;
-    return mod.rows.filter((row) =>
+    if (active.length === 0) return rows;
+    return rows.filter((row) =>
       active.every(([key, val]) => {
         const cell = row[key];
         return cell != null && String(cell).toLowerCase().includes(String(val).toLowerCase());
       })
     );
-  }, [mod, filters]);
+  }, [rows, filters]);
 
   if (!mod) {
     return <div className={styles.title}>Module not found.</div>;
@@ -53,16 +65,21 @@ export default function ModuleListPage() {
       />
 
       <div className={styles.tableWrap}>
-        <DataTable
-          columns={mod.columns || []}
-          rows={filteredRows}
-          actions={mod.actions || []}
-          onRowClick={(row) => alert(JSON.stringify(row, null, 2))}
-        />
+        {loading ? (
+          <div className={styles.loading}>Loading...</div>
+        ) : (
+          <DataTable
+            columns={mod.columns || []}
+            rows={filteredRows}
+            actions={mod.actions || []}
+            onRowClick={(row) => alert(JSON.stringify(row, null, 2))}
+          />
+        )}
       </div>
 
       <div className={styles.resultCount}>
         {filteredRows.length} record{filteredRows.length !== 1 ? "s" : ""} found
+        {apiRows && " (live)"}
       </div>
     </div>
   );

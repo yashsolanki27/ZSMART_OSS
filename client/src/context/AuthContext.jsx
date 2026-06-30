@@ -1,40 +1,40 @@
 import { createContext, useContext, useState, useCallback } from "react";
-
-/**
- * AuthContext — minimal auth for Phase 1.
- * In Phase 2 this swaps to real JWT calls; the API stays identical
- * (login / logout / user) so components never change.
- */
+import { api } from "../api";
 
 const AuthContext = createContext(null);
 
-const STORAGE_KEY = "zsmart.user";
+const USER_KEY = "zsmart.user";
+const TOKEN_KEY = "zsmart_token";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(USER_KEY);
       return raw ? JSON.parse(raw) : null;
     } catch {
       return null;
     }
   });
 
-  const login = useCallback((username) => {
+  const login = useCallback(async (username, password) => {
+    const result = await api.auth.login(username, password);
     const u = {
-      username,
-      name: username.charAt(0).toUpperCase() + username.slice(1),
-      role: "Administrator",
-      initials: username.charAt(0).toUpperCase(),
+      id: result.user.id,
+      username: result.user.username,
+      name: result.user.fullName,
+      role: result.user.role,
+      initials: result.user.fullName.charAt(0).toUpperCase(),
     };
     setUser(u);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(u));
+    localStorage.setItem(USER_KEY, JSON.stringify(u));
+    localStorage.setItem(TOKEN_KEY, result.token);
     return u;
   }, []);
 
   const logout = useCallback(() => {
     setUser(null);
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(TOKEN_KEY);
   }, []);
 
   return (

@@ -1,0 +1,9 @@
+{
+  "note": "Log every API call here to track daily limits. Reset counters daily.",
+  "today": "2026-06-30",
+  "gpt4omini": { "used": 0, "limit": 150, "last_call": null },
+  "gemini": { "used": 0, "limit": 1500, "last_call": null },
+  "groq": { "used": 0, "limit": 1000, "last_call": null },
+  "openrouter": { "used": 0, "limit": 50, "last_call": null },
+  "history": []
+}

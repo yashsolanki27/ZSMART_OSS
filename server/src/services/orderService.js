@@ -1,0 +1,36 @@
+import { prisma } from "../prismaClient.js";
+
+export async function list({ filter = {}, page = 1, limit = 20 }) {
+  const where = buildWhere(filter);
+  const [items, total] = await prisma.$transaction([
+    prisma.order.findMany({ where, skip: (page - 1) * limit, take: limit, orderBy: { id: "asc" } }),
+    prisma.order.count({ where }),
+  ]);
+  return { items, total, page, limit };
+}
+
+export async function create(data) {
+  return prisma.order.create({ data });
+}
+
+export async function getById(id) {
+  return prisma.order.findUnique({ where: { id } });
+}
+
+export async function update(id, data) {
+  return prisma.order.update({ where: { id }, data });
+}
+
+export async function remove(id) {
+  return prisma.order.delete({ where: { id } });
+}
+
+function buildWhere(filter) {
+  const where = {};
+  if (filter.customerOrderNumber) where.customerOrderNumber = { contains: filter.customerOrderNumber, mode: "insensitive" };
+  if (filter.phoneNumber) where.phoneNumber = { contains: filter.phoneNumber, mode: "insensitive" };
+  if (filter.orderStatus) where.orderStatus = filter.orderStatus;
+  if (filter.priority) where.priority = filter.priority;
+  if (filter.area) where.area = { contains: filter.area, mode: "insensitive" };
+  return where;
+}

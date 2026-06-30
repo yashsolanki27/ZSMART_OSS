@@ -1,0 +1,43 @@
+{
+  "project": "ZSMART OSS — Telecom Operations Support System",
+  "stack": {
+    "frontend": "React 18 + Vite 5 + React Router 6 + Recharts",
+    "backend": "Node.js + Express + Prisma ORM",
+    "database": "PostgreSQL (Neon)",
+    "auth": "JWT (bcryptjs + jsonwebtoken)"
+  },
+  "status": {
+    "phase1_frontend": { "status": "COMPLETE" },
+    "phase2_backend": { "status": "COMPLETE" },
+    "phase3_database": { "status": "COMPLETE" },
+    "phase4_integration": { "status": "COMPLETE" },
+    "phase5_production": {
+      "status": "PARTIAL",
+      "steps": {
+        "5_1_docker": {
+          "status": "DONE",
+          "files": ["server/Dockerfile", "server/.dockerignore", "docker-compose.yml"]
+        },
+        "5_2_ci": {
+          "status": "DONE",
+          "files": [".github/workflows/ci.yml"]
+        },
+        "5_3_database_deploy": {
+          "status": "DONE",
+          "provider": "Neon",
+          "url": "postgresql://neondb_owner:...@ep-wild-leaf-aiuvd5pf-pooler.c-4.us-east-1.aws.neon.tech/neondb"
+        },
+        "5_4_backend_deploy": {
+          "status": "READY",
+          "files": ["render.yaml"],
+          "action_required": "Push to GitHub → deploy on render.com via Blueprint"
+        },
+        "5_5_frontend_deploy": {
+          "status": "READY",
+          "files": ["client/vercel.json"],
+          "action_required": "Push to GitHub → import on vercel.com, set VITE_API_URL"
+        }
+      }
+    }
+  }
+}

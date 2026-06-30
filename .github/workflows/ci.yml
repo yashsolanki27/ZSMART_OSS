@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: zsmart
+          POSTGRES_PASSWORD: zsmart123
+          POSTGRES_DB: zsmart_oss
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: |
+            server/package-lock.json
+            client/package-lock.json
+
+      - name: Install server deps
+        run: npm ci
+        working-directory: server
+
+      - name: Install client deps
+        run: npm ci
+        working-directory: client
+
+      - name: Prisma generate
+        run: npx prisma generate
+        working-directory: server
+        env:
+          DATABASE_URL: postgresql://zsmart:zsmart123@localhost:5432/zsmart_oss?schema=public
+
+      - name: Run migrations
+        run: npx prisma migrate dev --name init
+        working-directory: server
+        env:
+          DATABASE_URL: postgresql://zsmart:zsmart123@localhost:5432/zsmart_oss?schema=public
+
+      - name: Seed database
+        run: node prisma/seed.js
+        working-directory: server
+        env:
+          DATABASE_URL: postgresql://zsmart:zsmart123@localhost:5432/zsmart_oss?schema=public
+
+      - name: Build client
+        run: npm run build
+        working-directory: client
