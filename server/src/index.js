@@ -12,7 +12,15 @@ const PORT = process.env.PORT || 4000;
 
 console.log(`[boot] PORT=${PORT} NODE_ENV=${process.env.NODE_ENV}`);
 
-/* ---------- Global middleware ---------- */
+process.on("uncaughtException", (e) => {
+  console.error("[FATAL] Uncaught exception:", e);
+});
+process.on("unhandledRejection", (e) => {
+  console.error("[FATAL] Unhandled rejection:", e);
+});
+
+app.set("trust proxy", true);
+
 app.use(cors({
   origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
   credentials: true,
@@ -20,10 +28,12 @@ app.use(cors({
 app.use(express.json());
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
-/* ---------- Health endpoint ---------- */
-app.get("/health", (req, res) => res.status(200).type("text").send("ok"));
+const healthHandler = (req, res) => res.status(200).type("text").send("ok");
+app.get("/health", healthHandler);
+app.head("/health", healthHandler);
+app.get("/api/health", healthHandler);
+app.get("/", healthHandler);
 
-/* ---------- Route imports ---------- */
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import roleRoutes from "./routes/roles.js";
@@ -48,7 +58,6 @@ import alarmRoutes from "./routes/alarms.js";
 import incidentRoutes from "./routes/incidents.js";
 import auditLogRoutes from "./routes/auditLogs.js";
 
-/* ---------- Mount API routes ---------- */
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/roles", roleRoutes);
@@ -73,7 +82,6 @@ app.use("/api/alarms", alarmRoutes);
 app.use("/api/incidents", incidentRoutes);
 app.use("/api/audit-logs", auditLogRoutes);
 
-/* ---------- Error handlers ---------- */
 import { errorHandler } from "./middleware/errorHandler.js";
 
 app.use((req, res) => {
@@ -82,17 +90,14 @@ app.use((req, res) => {
 
 app.use(errorHandler);
 
-/* ---------- Warm up DB connection pool ---------- */
 const warmDb = prisma.$connect()
   .then(() => console.log("[db] PostgreSQL connected"))
   .catch((e) => console.warn("[db] Connection failed:", e.message));
 
-/* ---------- Boot ---------- */
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`[boot] ZSMART OSS API ready on 0.0.0.0:${PORT}`);
 });
 
-/* Run pending migrations in background */
 if (process.env.NODE_ENV === "production") {
   setTimeout(() => {
     try {
