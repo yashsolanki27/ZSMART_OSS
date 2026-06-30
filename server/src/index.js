@@ -19,11 +19,8 @@ app.use(cors({
 app.use(express.json());
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
-/* ---------- Health endpoints ---------- */
-// MUST be first route — Railway LB hits this immediately after container start
-app.get(["/health", "/api/health"], (req, res) => {
-  res.json({ status: "ok", service: "zsmart-oss-server" });
-});
+/* ---------- Health endpoint ---------- */
+app.get("/health", (req, res) => res.status(200).type("text").send("ok"));
 
 /* ---------- Route imports ---------- */
 import authRoutes from "./routes/auth.js";

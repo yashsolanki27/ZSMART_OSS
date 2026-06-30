@@ -5,6 +5,7 @@
   },
   "deploy": {
     "healthcheckPath": "/health",
+    "healthcheckPort": 4000,
     "restartPolicyType": "ON_FAILURE",
     "numReplicas": 1
   }
