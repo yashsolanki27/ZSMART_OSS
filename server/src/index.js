@@ -1,38 +1,28 @@
-/**
- * ZSMART OSS — Backend API entry point
- * Express server with CORS, logging, JSON parsing, health check, and route mounting.
- *
- * Phase 2.1: scaffold + boot. Routes get wired in subsequent steps (2.5+).
- */
-import { execSync } from "child_process";
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
+import { execSync } from "child_process";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+console.log(`[boot] PORT=${PORT} NODE_ENV=${process.env.NODE_ENV}`);
+
 /* ---------- Global middleware ---------- */
-app.use(
-  cors({
-    origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
+  credentials: true,
+}));
 app.use(express.json());
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
-/* ---------- Health check ---------- */
-app.get("/api/health", (req, res) => {
-  res.json({
-    status: "ok",
-    service: "zsmart-oss-server",
-    time: new Date().toISOString(),
-    env: process.env.NODE_ENV,
-  });
+/* ---------- Health endpoints ---------- */
+// MUST be first route — Railway LB hits this immediately after container start
+app.get(["/health", "/api/health"], (req, res) => {
+  res.json({ status: "ok", service: "zsmart-oss-server" });
 });
 
 /* ---------- Route imports ---------- */
@@ -85,7 +75,7 @@ app.use("/api/alarms", alarmRoutes);
 app.use("/api/incidents", incidentRoutes);
 app.use("/api/audit-logs", auditLogRoutes);
 
-/* ---------- 404 + error handlers ---------- */
+/* ---------- Error handlers ---------- */
 import { errorHandler } from "./middleware/errorHandler.js";
 
 app.use((req, res) => {
@@ -95,22 +85,18 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 /* ---------- Boot ---------- */
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`\n🟢 ZSMART OSS API running at http://0.0.0.0:${PORT}`);
-  console.log(`   Health: http://localhost:${PORT}/api/health`);
-  console.log(`   Client origin: ${process.env.CLIENT_ORIGIN}\n`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`[boot] ZSMART OSS API ready on 0.0.0.0:${PORT}`);
 });
 
-/* Run pending migrations in background — don't block health check */
+/* Run pending migrations in background */
 if (process.env.NODE_ENV === "production") {
   setTimeout(() => {
     try {
       execSync("npx prisma migrate deploy", { stdio: "inherit" });
-      console.log("   Migrations applied successfully");
+      console.log("[migrate] Migrations applied");
     } catch (e) {
-      console.error("   Migration failed (server still running):", e.message);
+      console.error("[migrate] Failed:", e.message);
     }
   }, 2000);
 }
-
-export default app;
