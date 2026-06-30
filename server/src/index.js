@@ -3,6 +3,7 @@ import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import { execSync } from "child_process";
+import prisma from "./prismaClient.js";
 
 dotenv.config();
 
@@ -80,6 +81,11 @@ app.use((req, res) => {
 });
 
 app.use(errorHandler);
+
+/* ---------- Warm up DB connection pool ---------- */
+const warmDb = prisma.$connect()
+  .then(() => console.log("[db] PostgreSQL connected"))
+  .catch((e) => console.warn("[db] Connection failed:", e.message));
 
 /* ---------- Boot ---------- */
 app.listen(PORT, "0.0.0.0", () => {
