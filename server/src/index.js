@@ -4,6 +4,7 @@
  *
  * Phase 2.1: scaffold + boot. Routes get wired in subsequent steps (2.5+).
  */
+import { execSync } from "child_process";
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
@@ -94,10 +95,22 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 /* ---------- Boot ---------- */
-app.listen(PORT, () => {
-  console.log(`\n🟢 ZSMART OSS API running at http://localhost:${PORT}`);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`\n🟢 ZSMART OSS API running at http://0.0.0.0:${PORT}`);
   console.log(`   Health: http://localhost:${PORT}/api/health`);
   console.log(`   Client origin: ${process.env.CLIENT_ORIGIN}\n`);
 });
+
+/* Run pending migrations in background — don't block health check */
+if (process.env.NODE_ENV === "production") {
+  setTimeout(() => {
+    try {
+      execSync("npx prisma migrate deploy", { stdio: "inherit" });
+      console.log("   Migrations applied successfully");
+    } catch (e) {
+      console.error("   Migration failed (server still running):", e.message);
+    }
+  }, 2000);
+}
 
 export default app;

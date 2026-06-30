@@ -7,4 +7,4 @@ RUN npm install
 RUN npx prisma generate
 COPY . .
 EXPOSE 4000
-CMD npx prisma migrate deploy && node src/index.js
+CMD node src/index.js
