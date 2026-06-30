@@ -4,9 +4,6 @@
   "description": "ZSMART OSS — Backend API (Node.js + Express + Prisma + PostgreSQL)",
   "type": "module",
   "main": "src/index.js",
-  "prisma": {
-    "schema": "prisma/schema.prisma"
-  },
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "npx prisma migrate deploy && node src/index.js",
